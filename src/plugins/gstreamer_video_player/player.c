@@ -887,7 +887,9 @@ static int init(struct gstplayer *player, bool force_sw_decoders) {
 
     if (player->video_uri != NULL) {
         if (src != NULL) {
-            g_object_set(G_OBJECT(src), "uri", player->video_uri, NULL);
+            if (g_object_class_find_property(G_OBJECT_GET_CLASS(src), "uri") != NULL) {
+                g_object_set(G_OBJECT(src), "uri", player->video_uri, NULL);
+            }
         } else {
             LOG_ERROR("Couldn't find \"src\" element to configure Video URI.\n");
         }
@@ -895,7 +897,9 @@ static int init(struct gstplayer *player, bool force_sw_decoders) {
 
     if (force_sw_decoders) {
         if (src != NULL) {
-            g_object_set(G_OBJECT(src), "force-sw-decoders", force_sw_decoders, NULL);
+            if (g_signal_lookup("source-setup", G_OBJECT_TYPE(src)) != 0) {
+                g_signal_connect(G_OBJECT(src), "source-setup", G_CALLBACK(on_source_setup), player->headers);
+            }
         } else {
             LOG_ERROR("Couldn't find \"src\" element to force sw decoding.\n");
         }
@@ -903,7 +907,9 @@ static int init(struct gstplayer *player, bool force_sw_decoders) {
 
     if (player->headers != NULL) {
         if (src != NULL) {
-            g_signal_connect(G_OBJECT(src), "source-setup", G_CALLBACK(on_source_setup), player->headers);
+            if (g_signal_lookup("element-added", G_OBJECT_TYPE(src)) != 0) {
+                g_signal_connect(src, "element-added", G_CALLBACK(on_element_added), player);
+            }
         } else {
             LOG_ERROR("Couldn't find \"src\" element to configure additional HTTP headers.\n");
         }
