@@ -971,14 +971,27 @@ static int init(struct gstplayer *player, bool force_sw_decoders) {
 
     flutterpi_sd_event_add_io(&busfd_event_source, fd.fd, EPOLLIN, on_bus_fd_ready, player);
 
-    LOG_DEBUG("Setting state to paused...\n");
-    state_change_return = gst_element_set_state(GST_ELEMENT(pipeline), GST_STATE_PAUSED);
-    if (state_change_return == GST_STATE_CHANGE_NO_PREROLL) {
-        LOG_DEBUG("Is Live!\n");
-        player->is_live = true;
-    } else {
-        LOG_DEBUG("Not live!\n");
-        player->is_live = false;
+    // LOG_DEBUG("Setting state to paused...\n");
+    // state_change_return = gst_element_set_state(GST_ELEMENT(pipeline), GST_STATE_PAUSED);
+    // if (state_change_return == GST_STATE_CHANGE_NO_PREROLL) {
+    //     LOG_DEBUG("Is Live!\n");
+    //     player->is_live = true;
+    // } else {
+    //     LOG_DEBUG("Not live!\n");
+    //     player->is_live = false;
+    // }
+
+    LOG_DEBUG("Setting state to PLAYING asynchronously...\n");
+
+    // Для RTSP/Live потоков явно помечаем плеер как live
+    player->is_live = true;
+
+    // Переводим сразу в PLAYING без ожидания
+    state_change_return = gst_element_set_state(GST_ELEMENT(pipeline), GST_STATE_PLAYING);
+
+    if (state_change_return == GST_STATE_CHANGE_FAILURE) {
+        LOG_ERROR("Failed to set pipeline state to PLAYING\n");
+        goto fail_unref_pipeline;
     }
 
     player->sink = sink;
