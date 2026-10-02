@@ -966,6 +966,11 @@ static int init(struct gstplayer *player, bool force_sw_decoders) {
     }
 
     bus = gst_pipeline_get_bus(GST_PIPELINE(pipeline));
+    if (bus == NULL) {
+        LOG_ERROR("Failed to get bus from pipeline.\n");
+        ok = EINVAL;
+        goto fail_unref_pipeline;
+    }
 
     gst_bus_get_pollfd(bus, &fd);
 
