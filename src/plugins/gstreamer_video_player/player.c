@@ -885,7 +885,7 @@ static int init(struct gstplayer *player, bool force_sw_decoders) {
 
     src = gst_bin_get_by_name(GST_BIN(pipeline), "src");
 
-    if (player->video_uri != NULL) {
+    if (player->video_uri != NULL && player->video_uri[0] != '\0') {
         if (src != NULL) {
             if (g_object_class_find_property(G_OBJECT_GET_CLASS(src), "uri") != NULL) {
                 g_object_set(G_OBJECT(src), "uri", player->video_uri, NULL);
@@ -915,12 +915,19 @@ static int init(struct gstplayer *player, bool force_sw_decoders) {
         }
     }
 
-    gst_base_sink_set_max_lateness(GST_BASE_SINK(sink), 20 * GST_MSECOND);
-    gst_base_sink_set_qos_enabled(GST_BASE_SINK(sink), TRUE);
-    gst_base_sink_set_sync(GST_BASE_SINK(sink), TRUE);
-    gst_app_sink_set_max_buffers(GST_APP_SINK(sink), 2);
+    // gst_base_sink_set_max_lateness(GST_BASE_SINK(sink), 20 * GST_MSECOND);
+    // gst_base_sink_set_qos_enabled(GST_BASE_SINK(sink), TRUE);
+    // gst_base_sink_set_sync(GST_BASE_SINK(sink), TRUE);
+    // gst_app_sink_set_max_buffers(GST_APP_SINK(sink), 2);
+    // gst_app_sink_set_emit_signals(GST_APP_SINK(sink), TRUE);
+    // gst_app_sink_set_drop(GST_APP_SINK(sink), FALSE);
+    //
+    gst_base_sink_set_max_lateness(GST_BASE_SINK(sink), -1);
+    gst_base_sink_set_qos_enabled(GST_BASE_SINK(sink), FALSE);
+    gst_base_sink_set_sync(GST_BASE_SINK(sink), FALSE);
+    gst_app_sink_set_max_buffers(GST_APP_SINK(sink), 1);
     gst_app_sink_set_emit_signals(GST_APP_SINK(sink), TRUE);
-    gst_app_sink_set_drop(GST_APP_SINK(sink), FALSE);
+    gst_app_sink_set_drop(GST_APP_SINK(sink), TRUE);
 
     // configure our caps
     // we only accept video formats that we can actually upload to EGL
